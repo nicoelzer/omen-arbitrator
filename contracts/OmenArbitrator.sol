@@ -80,9 +80,9 @@ contract OmenArbitrator is Ownable{
   }
 
   /** @dev Owner facing function used to change the address of the DAOstack Alchemy Generic Scheme address
-  * @param _address address of coresponding DAOstack Plugiin
-  * Emits an {SetDAOstackPlugin} event.
-  */
+    * @param _address address of coresponding DAOstack Plugiin
+    * Emits an {SetDAOstackPlugin} event.
+    */
   function setDAOstackPlugin(address _address) 
     onlyOwner()
     public {
@@ -91,9 +91,9 @@ contract OmenArbitrator is Ownable{
   }
 
   /** @dev Owner facing function used to change the address of the DAOstack Avatar address
-  * @param _DAOstackAvatar address of coresponding DAOstack Plugiin
-  * Emits an {SetDAOstackAvatar} event.
-  */
+    * @param _DAOstackAvatar address of coresponding DAOstack Plugiin
+    * Emits an {SetDAOstackAvatar} event.
+    */
   function setDAOstackAvatar(address _DAOstackAvatar) 
     onlyOwner()
     public {
@@ -102,8 +102,8 @@ contract OmenArbitrator is Ownable{
   }
 
   /** @dev Owner facing function used to change the DescriptionHash for the DAOstack Proposal
-  * @param _descriptionHash String of descriptionHash
-  */
+    * @param _descriptionHash String of descriptionHash
+    */
   function setDAOstackProposalDescriptionHash(string memory _descriptionHash) 
     onlyOwner()
     public {
