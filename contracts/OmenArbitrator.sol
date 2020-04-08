@@ -184,7 +184,7 @@ contract OmenArbitrator is Ownable{
     if (paid >= arbitrationFee) {
         withdraw(arbitrationFees[questionId]);
         emit Withdraw(feeRecipient, arbitrationFees[questionId]);
-        bytes memory encodedCall = abi.encodeWithSelector(bytes4(keccak256("disputeRequestNotification(string)")), questionId);
+        bytes memory encodedCall = abi.encodeWithSelector(bytes4(keccak256("disputeRequestNotification(bytes32)")), questionId);
         genericScheme.proposeCall(DAOstackAvatar,encodedCall,0,proposalDescriptionHash);
         realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
         emit RequestArbitration(questionId, msg.value, msg.sender, 0);
