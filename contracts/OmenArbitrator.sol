@@ -1,15 +1,17 @@
-pragma solidity ^0.5.0;
+pragma solidity >=0.6.2;
 
 import "./interfaces/IRealitio.sol";
 import "./interfaces/IGenericScheme.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import '@openzeppelin/contracts/access/Ownable.sol';
 
+
+/// @title dxDAO Omen Arbitrator
+/// @notice A realit.io arbitrator contract to request and submit dispute resolutions to the dxDAO.
 contract OmenArbitrator is Ownable{
   using SafeMath for uint;
 
   IRealitio public realitio;
-
   IGenericScheme public genericScheme;
 
   /** @dev Address of DAOstack Avatar */
@@ -172,37 +174,33 @@ contract OmenArbitrator is Ownable{
     * Emits an {RequestArbitration} event.
     */
   function requestArbitration(bytes32 questionId, uint256 maxPrevious) external payable returns (bool){
-
     uint256 arbitrationFee = getDisputeFee(questionId);
     require(arbitrationFee > 0, "The arbitrator must have set a non-zero fee for the question");
-
     disputeQuestionId[disputeCount] = questionId;
     arbitrationFees[questionId] = arbitrationFees[questionId].add(msg.value);
     uint256 paid = arbitrationFees[questionId];
     disputeCount++;
-    
     if (paid >= arbitrationFee) {
-        withdraw(arbitrationFees[questionId]);
-        emit Withdraw(feeRecipient, arbitrationFees[questionId]);
-        bytes memory encodedCall = abi.encodeWithSelector(bytes4(keccak256("disputeRequestNotification(bytes32)")), questionId);
-        genericScheme.proposeCall(DAOstackAvatar,encodedCall,0,proposalDescriptionHash);
-        realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
-        emit RequestArbitration(questionId, msg.value, msg.sender, 0);
-        return true;
+      withdraw(arbitrationFees[questionId]);
+      emit Withdraw(feeRecipient, arbitrationFees[questionId]);
+      bytes memory encodedCall = abi.encodeWithSelector(bytes4(keccak256("disputeRequestNotification(bytes32)")), questionId);
+      genericScheme.proposeCall(DAOstackAvatar,encodedCall,0,proposalDescriptionHash);
+      realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
+      emit RequestArbitration(questionId, msg.value, msg.sender, 0);
+      return true;
     } else {
-        require(!realitio.isFinalized(questionId), "The question must not have been finalized");
-        emit RequestArbitration(questionId, msg.value, msg.sender, arbitrationFee - paid);
-        return false;
+      require(!realitio.isFinalized(questionId), "The question must not have been finalized");
+      emit RequestArbitration(questionId, msg.value, msg.sender, arbitrationFee - paid);
+      return false;
     }
-    return true;
   }
 
   /** @dev Internal function to withdraw fees and transfer to defined fee recipient.
     * @param _amount amount to be transfered
-    * @return the fee in ETH to charged by abitrator.
+    * Emits an {Withdraw} event.
     */
   function withdraw(uint _amount) 
-  internal {
+  internal payable{
     feeRecipient.transfer(_amount); 
     emit Withdraw(feeRecipient, _amount);
   }
