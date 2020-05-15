@@ -5,7 +5,6 @@ import "./interfaces/IGenericScheme.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-
 /// @title dxDAO Omen Arbitrator
 /// @notice A realit.io arbitrator contract to request and submit dispute resolutions to the dxDAO.
 contract OmenArbitrator is Ownable{
@@ -181,27 +180,18 @@ contract OmenArbitrator is Ownable{
     uint256 paid = arbitrationFees[questionId];
     disputeCount++;
     if (paid >= arbitrationFee) {
-      withdraw(arbitrationFees[questionId]);
       bytes memory encodedCall = abi.encodeWithSelector(bytes4(keccak256("disputeRequestNotification(bytes32)")), questionId);
       genericScheme.proposeCall(DAOstackAvatar,encodedCall,0,proposalDescriptionHash);
       realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
       emit RequestArbitration(questionId, msg.value, msg.sender, 0);
+      feeRecipient.transfer(paid);
+      emit Withdraw(feeRecipient, paid);
       return true;
     } else {
       require(!realitio.isFinalized(questionId), "The question must not have been finalized");
       emit RequestArbitration(questionId, msg.value, msg.sender, arbitrationFee - paid);
       return false;
     }
-  }
-
-  /** @dev Internal function to withdraw fees and transfer to defined fee recipient.
-    * @param _amount amount to be transfered
-    * Emits an {Withdraw} event.
-    */
-  function withdraw(uint _amount) 
-  internal payable{
-    feeRecipient.transfer(_amount); 
-    emit Withdraw(feeRecipient, _amount);
   }
 
 }
