@@ -1,5 +1,7 @@
-# Omen Arbitrator #
+# DXdao Arbitrator #
 A realit.io arbitrator contract to request and submit dispute resolutions to the dxDAO.
+
+![DXdao Arbitrator](/DXdao_arbitrator.png)
 
 ### Instructions
 `npm install`

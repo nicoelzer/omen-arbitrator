@@ -7,20 +7,22 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
-    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+    "test": "truffle test --network development",
+    "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol &s& ./node_modules/.bin/solhint -f table contracts/*.sol",
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol && ./node_modules/.bin/prettier --write contracts/*.sol"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@openzeppelin/cli": "^2.8.1",
     "@truffle/hdwallet-provider": "^1.0.34",
+    "dotenv": "^8.2.0",
     "truffle": "^5.1.21",
     "truffle-assertions": "^0.9.2"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^3.0.1",
+    "@openzeppelin/test-helpers": "^0.5.6",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-alpha.48",
     "solhint": "^2.3.1",

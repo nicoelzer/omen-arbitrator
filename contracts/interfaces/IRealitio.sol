@@ -1,5 +1,6 @@
 pragma solidity >=0.6.2;
 
+
 interface IRealitio {
     /// @notice Notify the contract that the arbitrator has been paid for a question, freezing it pending their decision.
     /// @dev The arbitrator contract is trusted to only call this if they've been paid, and tell us who paid them.
@@ -30,4 +31,17 @@ interface IRealitio {
     /// @param question_id The ID of the question
     /// @return Return true if finalized
     function isFinalized(bytes32 question_id) external view returns (bool);
+
+    function askQuestion(
+        uint256 template_id,
+        string calldata question,
+        address arbitrator,
+        uint32 timeout,
+        uint32 opening_ts,
+        uint256 nonce
+    ) external payable returns (bytes32);
+
+    function resultFor(bytes32 question_id) external view returns (bytes32);
+
+    function getArbitrator(bytes32 question_id) external view returns (address);
 }
