@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 import './interfaces/IRealitio.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-
 contract RealitioProxy is Ownable {
     IRealitio public realitio;
 

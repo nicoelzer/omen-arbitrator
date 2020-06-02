@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle test --network development",
+    "test": "npx mocha --exit --recursive",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol &s& ./node_modules/.bin/solhint -f table contracts/*.sol",
     "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol && ./node_modules/.bin/prettier --write contracts/*.sol"
   },
@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@openzeppelin/cli": "^2.8.1",
+    "@openzeppelin/test-environment": "^0.1.4",
     "@truffle/hdwallet-provider": "^1.0.34",
     "dotenv": "^8.2.0",
     "truffle": "^5.1.21",
