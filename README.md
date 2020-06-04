@@ -5,8 +5,8 @@ A realit.io arbitrator contract to request and submit dispute resolutions to the
 
 ### Instructions
 `npm install`
-`npx truffle compile`
-`npx truffle test`
+`npm compile`
+`npm test`
 
 ### Linting and formatting
 Uses solhint + prettier, with solhint-plugin-prettier to have them play nicely.
