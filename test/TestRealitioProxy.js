@@ -1,3 +1,4 @@
+require('dotenv').config()
 const { accounts, contract, web3 } = require('@openzeppelin/test-environment');
 
 const {
@@ -6,6 +7,11 @@ const {
   expectEvent, 
   expectRevert, 
 } = require('@openzeppelin/test-helpers');
+
+const pinataSDK = require('@pinata/sdk');
+const apikey = process.env.PINATA_API_KEY; 
+const apiprivatekey = process.env.PINATA_PRIVATE_API_KEY;
+const pinata = pinataSDK(apikey,apiprivatekey);
 
 const { expect } = require('chai');
 const [ __owner,__user1 ] = accounts;
@@ -43,7 +49,13 @@ describe('RealitioProxy', function () {
     __nonce = 0;
     __answers = ["Answer1","Answer2","Answer3"];
     __answers2 = ["A0","A1","A2","A3"];
-  });
+    __proposalDescription = {
+      "description": "DxDAO was requested for dispute resolution on realitio",
+      "tags": [],
+      "title": "Dispute Resolution Vote",
+      "url": ""
+      }
+    });
 
   it('should revert arbitrator setters called by non-owner addresses', async function () {
     await expectRevert(
@@ -237,8 +249,14 @@ describe('RealitioProxy', function () {
   });
 
   it("should accept arbitration request and create DAOstack proposals", async function () {
+    await pinata.pinJSONToIPFS(__proposalDescription).then((result) => {
+      __proposalDescriptionHash = result.IpfsHash;
+    }).catch((err) => {
+        console.log(err);
+    });
     const questiondId = await __proxy.askQuestion.call(__template_id,__question3,__arbitrator2Address,__timeout,__opening_ts4,__nonce,__answers2,{ from: __owner });
     const proposalCountBefore = await __genericScheme.proposalCount.call({ from: __owner });
+    await __arbitrator2.setDAOstackProposalDescriptionHash(__proposalDescriptionHash, { from: __owner });
     await __proxy.askQuestion(__template_id,__question3,__arbitrator2Address,__timeout,__opening_ts4,__nonce,__answers2,{ from: __owner });
     await __realitio.submitAnswer(questiondId,web3.utils.toHex(0),0, {
       from: __owner,

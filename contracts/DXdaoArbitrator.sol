@@ -6,7 +6,6 @@ import './interfaces/IRealitioProxy.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-
 /// @title dxDAO Omen Arbitrator
 /// @notice A realit.io arbitrator contract to request and submit dispute resolutions to the dxDAO.
 contract DXdaoArbitrator is Ownable {
@@ -207,10 +206,10 @@ contract DXdaoArbitrator is Ownable {
                     i
                 );
                 bytes memory encodedCall = abi.encodeWithSelector(
-                    bytes4(keccak256('disputeRequestNotification(bytes32)')),
-                    questionId
+                    bytes4(keccak256('disputeResolutionVote(bytes32)')),
+                    singleAnswer
                 );
-                bytes32 proposalId = genericScheme.proposeCall(encodedCall, 0, singleAnswer);
+                bytes32 proposalId = genericScheme.proposeCall(encodedCall, 0, proposalDescriptionHash);
                 emit ProposalCreated(address(genericScheme), proposalId);
             }
             realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
