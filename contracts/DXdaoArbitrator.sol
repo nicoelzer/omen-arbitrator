@@ -6,8 +6,8 @@ import './interfaces/IRealitioProxy.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-/// @title dxDAO Omen Arbitrator
-/// @notice A realit.io arbitrator contract to request and submit dispute resolutions to the dxDAO.
+/// @title DXdao Omen Arbitrator
+/// @notice A realit.io arbitrator contract to request and submit dispute resolutions to the DXdao.
 contract DXdaoArbitrator is Ownable {
     using SafeMath for uint256;
 
@@ -53,7 +53,7 @@ contract DXdaoArbitrator is Ownable {
     /** @dev Event emitted when the corresponding Realitio contract address is changed. */
     event SetRealitio(address realitio);
 
-    /** @dev Event emitted when the corresponding Realitio contract address is changed. */
+    /** @dev Event emitted when the corresponding Realitio Proxy contract address is changed. */
     event SetRealitioProxy(address realitio);
 
     /** @dev Event emitted when the Avatar contract address is changed. */

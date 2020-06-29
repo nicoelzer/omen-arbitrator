@@ -21,7 +21,7 @@ const GenericScheme = contract.fromArtifact('GenericScheme');
 const Realitio = contract.fromArtifact('Realitio');
 const RealitioProxy = contract.fromArtifact('RealitioProxy');
 
-describe('RealitioProxy', function () {
+describe('OmenArbitrator', function () {
 
   before(async () => {
     __arbitrator1 = await DXdaoArbitrator.new({ from: __owner });
@@ -41,6 +41,7 @@ describe('RealitioProxy', function () {
     __question = 'TheQuestion␟"Answer1","Answer2","Answer3"␟Business & Finance␟en_US';
     __question2 = 'TheQuestion␟"Answer0","Answer1","Answer2"␟Business & Finance␟en_US';
     __question3 = 'TheQuestion␟"A0","A1","A2","A3"␟Business & Finance␟en_US';
+    __question4 = 'Another Question␟"A0","A1","A2","A3"␟Business & Finance␟en_US';
     __timeout = "86400";
     __opening_ts = "1590994800";
     __opening_ts2 = "1590996800";
@@ -267,6 +268,34 @@ describe('RealitioProxy', function () {
       value: __disputeFee
     });
     expectEvent(tx, 'ProposalCreated', { schemeAddress: __genericSchemeAddress });
+    
+    const proposalCountAfter = await __genericScheme.proposalCount.call();
+    expect(proposalCountAfter-proposalCountBefore).to.be.equal(4);
+  });
+
+  it("should accept arbitration request with splitted payment and create DAOstack proposals", async function () {
+    await pinata.pinJSONToIPFS(__proposalDescription).then((result) => {
+      __proposalDescriptionHash = result.IpfsHash;
+    }).catch((err) => {
+        console.log(err);
+    });
+    const questiondId = await __proxy.askQuestion.call(__template_id,__question4,__arbitrator2Address,__timeout,__opening_ts4,__nonce,__answers2,{ from: __owner });
+    const proposalCountBefore = await __genericScheme.proposalCount.call({ from: __owner });
+    await __arbitrator2.setDAOstackProposalDescriptionHash(__proposalDescriptionHash, { from: __owner });
+    await __proxy.askQuestion(__template_id,__question4,__arbitrator2Address,__timeout,__opening_ts4,__nonce,__answers2,{ from: __owner });
+    await __realitio.submitAnswer(questiondId,web3.utils.toHex(0),0, {
+      from: __owner,
+      value: web3.utils.toWei('0.2', 'ether')
+    });
+    const tx = await __arbitrator2.requestArbitration(questiondId,0,{
+      from: __owner,
+      value: __disputeFee/2
+    });
+    const tx2 = await __arbitrator2.requestArbitration(questiondId,0,{
+      from: __owner,
+      value: __disputeFee/2
+    });
+    expectEvent(tx2, 'ProposalCreated', { schemeAddress: __genericSchemeAddress });
     
     const proposalCountAfter = await __genericScheme.proposalCount.call();
     expect(proposalCountAfter-proposalCountBefore).to.be.equal(4);

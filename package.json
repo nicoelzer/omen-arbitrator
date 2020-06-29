@@ -1,29 +1,39 @@
 {
   "name": "DXdaoArbitrator",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "truffle compile && npx mocha --exit --recursive",
+    "test": "truffle compile && npx mocha --exit --recursive --timeout 5000",
     "compile": "truffle compile",
     "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol &s& ./node_modules/.bin/solhint -f table contracts/*.sol",
-    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol && ./node_modules/.bin/prettier --write contracts/*.sol"
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol && ./node_modules/.bin/prettier --write contracts/*.sol",
+    "coverage": "truffle compile && truffle run coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicoelzer/Omen-Arbitrator.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/nicoelzer/Omen-Arbitrator/issues"
+  },
+  "homepage": "https://github.com/nicoelzer/Omen-Arbitrator#readme",
   "dependencies": {
     "@openzeppelin/cli": "^2.8.1",
     "@pinata/sdk": "^1.1.10",
-    "@truffle/hdwallet-provider": "^1.0.34",
+    "@truffle/hdwallet-provider": "^1.0.36",
     "dotenv": "^8.2.0",
-    "truffle": "^5.1.21",
-    "truffle-assertions": "^0.9.2"
+    "truffle": "^5.1.32",
+    "truffle-assertions": "^0.9.2",
+    "truffle-plugin-verify": "^0.3.11"
   },
   "devDependencies": {
-    "@openzeppelin/contracts": "^3.0.1",
+    "@openzeppelin/contracts": "^3.1.0",
     "@openzeppelin/test-environment": "^0.1.4",
     "@openzeppelin/test-helpers": "^0.5.6",
     "chai": "^4.2.0",
@@ -32,9 +42,10 @@
     "mocha": "^7.2.0",
     "pinata-sdk": "^0.1.7",
     "prettier": "^2.0.5",
-    "prettier-plugin-solidity": "^1.0.0-alpha.48",
+    "prettier-plugin-solidity": "^1.0.0-alpha.54",
     "solhint": "^2.3.1",
     "solhint-plugin-prettier": "^0.0.4",
+    "solidity-coverage": "^0.7.9",
     "verify-on-etherscan": "^1.2.1"
   }
 }

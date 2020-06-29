@@ -33,6 +33,13 @@ module.exports = {
       host: "localhost",
       port: 8545, 
       network_id: "*"
+    },
+    coverage: {
+      host: 'localhost',
+      network_id: '*',
+      port: 8555,
+      gas: 0xfffffffffff,
+      gasPrice: 0x01
     }
   },
   compilers: {
@@ -40,6 +47,6 @@ module.exports = {
       version: "0.6.2",
     }
   },
-  plugins: ['truffle-plugin-verify'],
+  plugins: ['truffle-plugin-verify','solidity-coverage'],
   api_keys: { etherscan: etherscanApiKey }
 }
