@@ -176,7 +176,47 @@ contract DXdaoArbitrator is Ownable {
         return disputeFee;
     }
 
-    /** @dev Called by realitio to request abitration. Question on realitio will be freezed until answered is provided by submitAnswerByArbitrator()
+    /** @dev Called by realitio to request abitration. Question on realitio will be freezed until answere is provided by submitAnswerByArbitrator()
+     * @param questionId realitio questionId for reference.
+     * @param lastSeenBond tbd?
+     * @param lastAnswerer address of last answerer
+     * @param lastAnswerOrCommitmentId contains either the answer or if commitment, the commitment id
+     * @param lastAnswerIsCommitment is the last answer provided as commitment?
+     * Emits an {RequestArbitration} event.
+     */
+    function requestArbitrationWithLastAnswer(bytes32 questionId, uint256 lastSeenBond, address lastAnswerer, bytes32 lastAnswerOrCommitmentId, bool lastAnswerIsCommitment) 
+        external
+        payable
+        returns (bool)
+    {
+        uint256 arbitrationFee = getDisputeFee(questionId);
+        require(address(realitioProxy) != address(0), 'DXdaoArbitrator: NO_REALITIOPROXY_ADDRESS');
+        require(
+            realitio.getArbitrator(questionId) == address(this),
+            'DXdaoArbitrator: WRONG_ARBITRATOR'
+        );
+        require(!realitio.isFinalized(questionId), 'DXdaoArbitrator: FINALIZED_QUESTION');
+        require(arbitrationFee > 0, 'DXdaoArbitrator: ZERO_FEE');
+
+        require(
+            realitio.getArbitrator(questionId) == address(this),
+            'DXdaoArbitrator: WRONG_ARBITRATOR'
+        );
+        
+        if (lastAnswerIsCommitment){
+        (uint32 revealTs, bool isRevealed, bytes32 revealedAnswer) = realitio.commitments(lastAnswerOrCommitmentId);
+            require(
+                isRevealed == true,
+                'DXdaoArbitrator: UNREVEALED_ANSWER'
+            ); 
+        }
+
+        
+        return true;
+
+    } 
+
+    /** @dev Called by realitio to request abitration. Question on realitio will be freezed until answere is provided by submitAnswerByArbitrator()
      * @param questionId realitio questionId for reference.
      * @param maxPrevious If specified, reverts if a bond higher than this was submitted after you sent your transaction.
      * Emits an {RequestArbitration} event.
