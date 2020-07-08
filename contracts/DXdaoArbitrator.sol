@@ -190,6 +190,7 @@ contract DXdaoArbitrator is Ownable {
         returns (bool)
     {
         uint256 arbitrationFee = getDisputeFee(questionId);
+        bytes32 finalAnswer;
         require(address(realitioProxy) != address(0), 'DXdaoArbitrator: NO_REALITIOPROXY_ADDRESS');
         require(
             realitio.getArbitrator(questionId) == address(this),
@@ -204,15 +205,49 @@ contract DXdaoArbitrator is Ownable {
         );
         
         if (lastAnswerIsCommitment){
-        (uint32 revealTs, bool isRevealed, bytes32 revealedAnswer) = realitio.commitments(lastAnswerOrCommitmentId);
-            require(
-                isRevealed == true,
-                'DXdaoArbitrator: UNREVEALED_ANSWER'
-            ); 
+          (uint32 revealTs, bool isRevealed, bytes32 revealedAnswer) = realitio.commitments(lastAnswerOrCommitmentId);
+              require(
+                  isRevealed == true,
+                  'DXdaoArbitrator: UNREVEALED_ANSWER'
+              ); 
+          finalAnswer = revealedAnswer;
+        } else {
+          finalAnswer = lastAnswerOrCommitmentId;
         }
 
-        
-        return true;
+        disputeQuestionId[disputeCount] = questionId;
+        arbitrationFees[questionId] = arbitrationFees[questionId].add(msg.value);
+        uint256 paid = arbitrationFees[questionId];
+        disputeCount++;
+        if (paid >= arbitrationFee) {
+            uint256 answerCount = realitioProxy.getAnswerCountByQuestionId(questionId);
+            for (uint32 i = 0; i < answerCount; i++) {
+                string memory singleAnswer = realitioProxy.getSingleAnswerByQuestionId(
+                    questionId,
+                    i
+                );
+                address finalAnswerer;
+                if (finalAnswer == singleAnswer){
+                  finalAnswerer = lastAnswerer;
+                } else {
+                  finalAnswerer = address(this)
+                }
+                bytes memory encodedCall = abi.encodeWithSelector(
+                    bytes4(keccak256('disputeResolutionVote(bytes32,bytes32,address)')),
+                    questionId,singleAnswer,finalAnswerer
+                );
+                bytes32 proposalId = genericScheme.proposeCall(encodedCall, 0, proposalDescriptionHash);
+                emit ProposalCreated(address(genericScheme), proposalId);
+            }
+            realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
+            emit RequestArbitration(questionId, msg.value, msg.sender, 0);
+            feeRecipient.transfer(paid);
+            emit Withdraw(feeRecipient, paid);
+            return true;
+        } else {
+            emit RequestArbitration(questionId, msg.value, msg.sender, arbitrationFee - paid);
+            return false;
+        }
 
     } 
 
