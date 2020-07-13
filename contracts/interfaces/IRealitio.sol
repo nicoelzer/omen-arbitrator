@@ -46,4 +46,7 @@ interface IRealitio {
     function getArbitrator(bytes32 question_id) external view returns (address);
 
     function commitments(bytes32) external view returns (uint32 reveal_ts,bool is_revealed,bytes32 revealed_answer);
+
+    function getHistoryHash(bytes32 question_id) external view returns (bytes32);
+
 }
