@@ -7,7 +7,7 @@ contract('DXdaoArbitrator', () => {
   let dXdaoArbiratorInstance, genericSchemeInstance, realitioInstance, ownerAddress, secondAddress;
 
   const proposalDescriptionHash = 'QmZSDGCPixwn1UrqnmcscYcXq2HARgMFwfP7JJNXUsW9uU';
-  const metaData = 'MetaData';
+  const metaData = 'SampleMetaData';
   const disputeFee = expandTo18Decimals(1);
   const templateId = '2';
   const nonce = 0;
@@ -247,6 +247,8 @@ contract('DXdaoArbitrator', () => {
           ethers.utils.formatBytes32String(0),
           secondAddress.address
         );
+
+      expect(await dXdaoArbiratorInstance.getDisputeFee(questionId)).to.eq(disputeFee);
 
       expect(await dXdaoArbiratorInstance.disputeResolutionNotification(questionId)).to.eq(
         questionId

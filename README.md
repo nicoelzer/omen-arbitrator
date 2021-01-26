@@ -1,6 +1,9 @@
 # DXdao Arbitrator #
 A realit.io [arbitrator implementation](https://reality.eth.link/app/docs/html/arbitrators.html "arbitrator implementation") used by the DXdao to act as an arbitrator for disputed markets on [Omen](https://omen.eth.link "Omen").
 
+## Arbitration Process
+As soon as a Omen market is being resolved through [realitio](https://reality.eth.link/app/ "realitio"), anybody who denies the result of the community-driven resolution can trigger a dispute resolution process by the DXdao, by paying a fee. The DXdao will find consens through their governance process and submit a final outcome to the market.
+
 ## Getting started
 To run the tests, follow these steps. You must have at least node v10 and [yarn](https://yarnpkg.com/) installed.
 
