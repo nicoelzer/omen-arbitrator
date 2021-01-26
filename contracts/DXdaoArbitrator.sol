@@ -28,17 +28,17 @@ contract DXdaoArbitrator {
         address requester,
         uint256 remaining
     );
-    event ProposalCreated(address schemeAddress, bytes32 proposalId);
-    event SetRealitio(address realitio);
-    event SetDAOstackAvatar(address avatar);
-    event SetDAOstackProposalDescriptionHash(string descriptionHash);
-    event SetDAOstackPlugin(address plugin);
-    event SetMetaData(string metadata);
-    event SetDisputeFee(uint256 fee);
-    event SetOwner(address owner);
-    event SetFeeRecipient(address payable recipient);
+    event ProposalCreated(address indexed schemeAddress, bytes32 indexed proposalId);
+    event SetRealitio(address indexed realitio);
+    event SetDAOstackAvatar(address indexed avatar);
+    event SetDAOstackProposalDescriptionHash(string indexed descriptionHash);
+    event SetDAOstackPlugin(address indexed plugin);
+    event SetMetaData(string indexed metadata);
+    event SetDisputeFee(uint256 indexed fee);
+    event SetOwner(address indexed owner);
+    event SetFeeRecipient(address payable indexed recipient);
     event SubmitAnswerByArbitrator(bytes32 indexed questionId, bytes32 answer, address answerer);
-    event Withdraw(address payable recipient, uint256 amount);
+    event Withdraw(address payable indexed recipient, uint256 indexed amount);
 
     modifier onlyOwner() {
         require(
@@ -105,6 +105,7 @@ contract DXdaoArbitrator {
         emit SetFeeRecipient(_recipient);
     }
 
+    // The arbitrator submits the final answer that resolves the market
     function submitAnswerByArbitrator(
         bytes32 questionId,
         bytes32 answer,
@@ -115,12 +116,12 @@ contract DXdaoArbitrator {
         emit SubmitAnswerByArbitrator(questionId, answer, answerer);
     }
     
+    // Arbitration can be requested by everyone by paying a dispute fee
     function requestArbitration(bytes32 questionId, uint256 maxPrevious)
         external
         payable
         returns (bool)
     {
-        uint256 arbitrationFee = getDisputeFee(questionId);
         require(
             realitio.getArbitrator(questionId) == address(this),
             'DXdaoArbitrator: WRONG_ARBITRATOR'
@@ -130,8 +131,7 @@ contract DXdaoArbitrator {
         disputeCount++;
         arbitrationFees[questionId] = arbitrationFees[questionId].add(msg.value);
         uint256 feePaid = arbitrationFees[questionId];
-        if (feePaid >= arbitrationFee) {
-
+        if (feePaid >= disputeFee) {
             bytes memory encodedCall = abi.encodeWithSelector(
                 bytes4(keccak256('disputeResolutionNotification(bytes32)')),
                 questionId
@@ -143,7 +143,6 @@ contract DXdaoArbitrator {
             callsData[0] = encodedCall;
             uint256[] memory values = new uint256[](1);
             values[0] = uint256(0);
-            
             bytes32 proposalId = genericScheme.proposeCalls(contractsToCall, callsData, values, proposalDescriptionHash);
             emit ProposalCreated(address(genericScheme), proposalId);
             realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);
@@ -152,17 +151,18 @@ contract DXdaoArbitrator {
             emit Withdraw(feeRecipient, feePaid);
             return true;
         } else {
-            emit RequestArbitration(questionId, msg.value, msg.sender, arbitrationFee.sub(feePaid));
+            emit RequestArbitration(questionId, msg.value, msg.sender, disputeFee.sub(feePaid));
             return false;
         }
     }
-
-    function getDisputeFee(bytes32 questionId) public view returns (uint256) {
+    
+    // Function to be called from realitio to fetch dispute fee
+    function getDisputeFee(bytes32 questionId) external view returns (uint256) {
         return disputeFee;
     }
 
-    // Utility function for Alchemy Proposal
-    function disputeResolutionNotification(bytes32 questionId) public pure returns (bytes32) {
+    // Utility function used for Alchemy proposal
+    function disputeResolutionNotification(bytes32 questionId) external pure returns (bytes32) {
       return questionId;
     }
 

@@ -24,7 +24,7 @@ task(
 
         const proposalDescriptionHash = 'QmZSDGCPixwn1UrqnmcscYcXq2HARgMFwfP7JJNXUsW9uU';
         const metaData = '';
-        const disputeFee = expandTo18Decimals(1)
+        const disputeFee = expandTo18Decimals(20)
 
         await hre.run("clean");
         await hre.run("compile");

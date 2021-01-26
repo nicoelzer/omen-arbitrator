@@ -83,9 +83,9 @@ contract('DXdaoArbitrator', () => {
       ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
 
       await expect(
-        dXdaoArbiratorInstance.connect(secondAddress).setDAOstackProposalDescriptionHash(
-          proposalDescriptionHash
-        )
+        dXdaoArbiratorInstance
+          .connect(secondAddress)
+          .setDAOstackProposalDescriptionHash(proposalDescriptionHash)
       ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
 
       await expect(
@@ -115,9 +115,9 @@ contract('DXdaoArbitrator', () => {
         .withArgs(metaData);
 
       await expect(
-        dXdaoArbiratorInstance.connect(ownerAddress).setDAOstackProposalDescriptionHash(
-          proposalDescriptionHash
-        )
+        dXdaoArbiratorInstance
+          .connect(ownerAddress)
+          .setDAOstackProposalDescriptionHash(proposalDescriptionHash)
       )
         .to.emit(dXdaoArbiratorInstance, 'SetDAOstackProposalDescriptionHash')
         .withArgs(proposalDescriptionHash);
@@ -184,18 +184,22 @@ contract('DXdaoArbitrator', () => {
       });
 
       await expect(
-        dXdaoArbiratorInstance.connect(secondAddress).submitAnswerByArbitrator(
+        dXdaoArbiratorInstance
+          .connect(secondAddress)
+          .submitAnswerByArbitrator(
+            questionId,
+            ethers.utils.formatBytes32String(0),
+            secondAddress.address
+          )
+      ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
+
+      await dXdaoArbiratorInstance
+        .connect(ownerAddress)
+        .submitAnswerByArbitrator(
           questionId,
           ethers.utils.formatBytes32String(0),
           secondAddress.address
-        )
-      ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
-
-      await dXdaoArbiratorInstance.connect(ownerAddress).submitAnswerByArbitrator(
-        questionId,
-        ethers.utils.formatBytes32String(0),
-        secondAddress.address
-      );
+        );
 
       await expect(
         dXdaoArbiratorInstance.connect(secondAddress).requestArbitration(questionId, 0, {
@@ -227,18 +231,22 @@ contract('DXdaoArbitrator', () => {
       });
 
       await expect(
-        dXdaoArbiratorInstance.connect(secondAddress).submitAnswerByArbitrator(
+        dXdaoArbiratorInstance
+          .connect(secondAddress)
+          .submitAnswerByArbitrator(
+            questionId,
+            ethers.utils.formatBytes32String(0),
+            secondAddress.address
+          )
+      ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
+
+      await dXdaoArbiratorInstance
+        .connect(ownerAddress)
+        .submitAnswerByArbitrator(
           questionId,
           ethers.utils.formatBytes32String(0),
           secondAddress.address
-        )
-      ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
-
-      await dXdaoArbiratorInstance.connect(ownerAddress).submitAnswerByArbitrator(
-        questionId,
-        ethers.utils.formatBytes32String(0),
-        secondAddress.address
-      );
+        );
 
       expect(await dXdaoArbiratorInstance.disputeResolutionNotification(questionId)).to.eq(
         questionId
