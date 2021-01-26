@@ -1,6 +1,7 @@
 /node_modules
 /build
 /coverage
+/contracts/.flattened
 
 coverage.json
 yarn.lock

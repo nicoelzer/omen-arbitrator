@@ -1,5 +1,3 @@
 module.exports = {
-    mocha: {
-        enableTimeouts: false
-    }
+  skipFiles: ['mocks/']
 };

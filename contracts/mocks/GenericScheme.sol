@@ -1,5 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.2;
-
 
 /**
  * @title GenericScheme.
@@ -7,42 +7,43 @@ pragma solidity >=0.6.2;
  * on a specific contract on behalf of the organization avatar.
  */
 contract GenericScheme {
-    event NewCallProposal(
+    event NewMultiCallProposal(
         address indexed _avatar,
         bytes32 indexed _proposalId,
-        bytes _callData,
-        uint256 _value,
-        string _descriptionHash
+        bytes[] _callsData,
+        uint256[] _values,
+        string _descriptionHash,
+        address[] _contractsToCall
     );
 
-    address payable public avatar;
+    address public avatar;
 
     uint256 public proposalCount;
     mapping(bytes32 => bool) proposalIds;
 
-    constructor() public {
+    constructor() {
         avatar = msg.sender;
     }
 
-    /**
-     * @dev propose to call on behalf of the _avatar
-     *      The function trigger NewCallProposal event
-     * @param _callData - The abi encode data for the call
-     * @param _value value(ETH) to transfer with the call
-     * @param _descriptionHash proposal description hash
-     * @return an id which represents the proposal
-     */
-    function proposeCall(
-        bytes memory _callData,
-        uint256 _value,
+    function proposeCalls(
+        address[] memory _contractsToCall,
+        bytes[] memory _callsData,
+        uint256[] memory _values,
         string memory _descriptionHash
     ) public returns (bytes32) {
-        // Generate random ID for mocking
-        bytes32 proposalId = keccak256(abi.encodePacked(_callData, _value, _descriptionHash, now));
+        // Generate ID for mocking
+        bytes32 proposalId = keccak256(abi.encodePacked(_descriptionHash, block.timestamp));
         proposalIds[proposalId] = true;
         proposalCount++;
 
-        emit NewCallProposal(address(avatar), proposalId, _callData, _value, _descriptionHash);
+        emit NewMultiCallProposal(
+            address(avatar),
+            proposalId,
+            _callsData,
+            _values,
+            _descriptionHash,
+            _contractsToCall
+        );
         return proposalId;
     }
 }

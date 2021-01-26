@@ -1,5 +1,5 @@
-pragma solidity >=0.6.2;
-
+// SPDX-License-Identifier: LGPL-3.0-or-newer
+pragma solidity >=0.8.0;
 
 interface IRealitio {
     /// @notice Notify the contract that the arbitrator has been paid for a question, freezing it pending their decision.

@@ -1,5 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.2;
-
 
 /**
  *Submitted for verification at Etherscan.io on 2018-10-20
@@ -38,7 +38,6 @@ library RealitioSafeMath256 {
     }
 }
 
-
 /**
  * @title RealitioSafeMath32
  * @dev Math operations with safety checks that throw on error
@@ -53,25 +52,24 @@ library RealitioSafeMath32 {
     }
 }
 
-
 contract BalanceHolder {
     mapping(address => uint256) public balanceOf;
 
     event LogWithdraw(address indexed user, uint256 amount);
 
-    function withdraw() public {
-        uint256 bal = balanceOf[msg.sender];
-        balanceOf[msg.sender] = 0;
-        msg.sender.transfer(bal);
-        emit LogWithdraw(msg.sender, bal);
+    function withdraw() public payable {
+        address payable receiver = payable(msg.sender);
+        uint256 bal = balanceOf[receiver];
+        balanceOf[receiver] = 0;
+        receiver.transfer(bal);
+        emit LogWithdraw(receiver, bal);
     }
 }
-
 
 contract Owned {
     address public owner;
 
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 
@@ -84,7 +82,6 @@ contract Owned {
         owner = newOwner;
     }
 }
-
 
 contract Realitio is BalanceHolder {
     using RealitioSafeMath256 for uint256;
@@ -211,11 +208,14 @@ contract Realitio is BalanceHolder {
         );
         uint32 finalize_ts = questions[question_id].finalize_ts;
         require(
-            finalize_ts == UNANSWERED || finalize_ts > uint32(now),
+            finalize_ts == UNANSWERED || finalize_ts > uint32(block.timestamp),
             'finalization deadline must not have passed'
         );
         uint32 opening_ts = questions[question_id].opening_ts;
-        require(opening_ts == 0 || opening_ts <= uint32(now), 'opening date must have passed');
+        require(
+            opening_ts == 0 || opening_ts <= uint32(block.timestamp),
+            'opening date must have passed'
+        );
         _;
     }
 
@@ -231,11 +231,14 @@ contract Realitio is BalanceHolder {
         require(questions[question_id].timeout > 0, 'question must exist');
         uint32 finalize_ts = questions[question_id].finalize_ts;
         require(
-            finalize_ts == UNANSWERED || finalize_ts > uint32(now),
+            finalize_ts == UNANSWERED || finalize_ts > uint32(block.timestamp),
             'finalization dealine must not have passed'
         );
         uint32 opening_ts = questions[question_id].opening_ts;
-        require(opening_ts == 0 || opening_ts <= uint32(now), 'opening date must have passed');
+        require(
+            opening_ts == 0 || opening_ts <= uint32(block.timestamp),
+            'opening date must have passed'
+        );
         _;
     }
 
@@ -267,7 +270,7 @@ contract Realitio is BalanceHolder {
 
     /// @notice Constructor, sets up some initial templates
     /// @dev Creates some generalized templates for different question types used in the DApp.
-    constructor() public {
+    constructor() {
         createTemplate('{"title": "%s", "type": "bool", "category": "%s", "lang": "%s"}');
         createTemplate(
             '{"title": "%s", "type": "uint", "decimals": 18, "category": "%s", "lang": "%s"}'
@@ -358,9 +361,8 @@ contract Realitio is BalanceHolder {
         require(templates[template_id] > 0, 'template must exist');
 
         bytes32 content_hash = keccak256(abi.encodePacked(template_id, opening_ts, question));
-        bytes32 question_id = keccak256(
-            abi.encodePacked(content_hash, arbitrator, timeout, msg.sender, nonce)
-        );
+        bytes32 question_id =
+            keccak256(abi.encodePacked(content_hash, arbitrator, timeout, msg.sender, nonce));
 
         _askQuestion(question_id, content_hash, arbitrator, timeout, opening_ts);
         emit LogNewQuestion(
@@ -373,7 +375,7 @@ contract Realitio is BalanceHolder {
             timeout,
             opening_ts,
             nonce,
-            now
+            block.timestamp
         );
 
         return question_id;
@@ -471,7 +473,7 @@ contract Realitio is BalanceHolder {
         );
 
         uint32 commitment_timeout = questions[question_id].timeout / COMMITMENT_TIMEOUT_RATIO;
-        commitments[commitment_id].reveal_ts = uint32(now).add(commitment_timeout);
+        commitments[commitment_id].reveal_ts = uint32(block.timestamp).add(commitment_timeout);
 
         _addAnswerToHistory(question_id, commitment_id, answerer, msg.value, true);
     }
@@ -500,7 +502,7 @@ contract Realitio is BalanceHolder {
             'commitment must not have been revealed yet'
         );
         require(
-            commitments[commitment_id].reveal_ts > uint32(now),
+            commitments[commitment_id].reveal_ts > uint32(block.timestamp),
             'reveal deadline must not have passed'
         );
 
@@ -521,15 +523,16 @@ contract Realitio is BalanceHolder {
         uint256 bond,
         bool is_commitment
     ) internal {
-        bytes32 new_history_hash = keccak256(
-            abi.encodePacked(
-                questions[question_id].history_hash,
-                answer_or_commitment_id,
-                bond,
-                answerer,
-                is_commitment
-            )
-        );
+        bytes32 new_history_hash =
+            keccak256(
+                abi.encodePacked(
+                    questions[question_id].history_hash,
+                    answer_or_commitment_id,
+                    bond,
+                    answerer,
+                    is_commitment
+                )
+            );
 
         // Update the current bond level, if there's a bond (ie anything except arbitration)
         if (bond > 0) {
@@ -543,7 +546,7 @@ contract Realitio is BalanceHolder {
             new_history_hash,
             answerer,
             bond,
-            now,
+            block.timestamp,
             is_commitment
         );
     }
@@ -554,7 +557,7 @@ contract Realitio is BalanceHolder {
         uint32 timeout_secs
     ) internal {
         questions[question_id].best_answer = answer;
-        questions[question_id].finalize_ts = uint32(now).add(timeout_secs);
+        questions[question_id].finalize_ts = uint32(block.timestamp).add(timeout_secs);
     }
 
     /// @notice Notify the contract that the arbitrator has been paid for a question, freezing it pending their decision.
@@ -614,7 +617,7 @@ contract Realitio is BalanceHolder {
         uint32 finalize_ts = questions[question_id].finalize_ts;
         return (!questions[question_id].is_pending_arbitration &&
             (finalize_ts > UNANSWERED) &&
-            (finalize_ts <= uint32(now)));
+            (finalize_ts <= uint32(block.timestamp)));
     }
 
     /// @notice (Deprecated) Return the final answer to the specified question, or revert if there isn't one
@@ -700,13 +703,14 @@ contract Realitio is BalanceHolder {
         uint256 i;
         for (i = 0; i < history_hashes.length; i++) {
             // Check input against the history hash, and see which of 2 possible values of is_commitment fits.
-            bool is_commitment = _verifyHistoryInputOrRevert(
-                last_history_hash,
-                history_hashes[i],
-                answers[i],
-                bonds[i],
-                addrs[i]
-            );
+            bool is_commitment =
+                _verifyHistoryInputOrRevert(
+                    last_history_hash,
+                    history_hashes[i],
+                    answers[i],
+                    bonds[i],
+                    addrs[i]
+                );
 
             queued_funds = queued_funds.add(last_bond);
             (queued_funds, payee) = _processHistoryItem(
@@ -937,7 +941,6 @@ contract Realitio is BalanceHolder {
     }
 }
 
-
 contract Arbitrator is Owned {
     Realitio public realitio;
 
@@ -964,7 +967,7 @@ contract Arbitrator is Owned {
     event LogSetCustomDisputeFee(bytes32 indexed question_id, uint256 fee);
 
     /// @notice Constructor. Sets the deploying address as owner.
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 
