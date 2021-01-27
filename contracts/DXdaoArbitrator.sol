@@ -138,11 +138,12 @@ contract DXdaoArbitrator {
             );
 
             address[] memory contractsToCall = new address[](1);
-            contractsToCall[0] = address(this);
             bytes[] memory callsData = new bytes[](1);
-            callsData[0] = encodedCall;
             uint256[] memory values = new uint256[](1);
+            contractsToCall[0] = address(this);
+            callsData[0] = encodedCall;
             values[0] = uint256(0);
+
             bytes32 proposalId = genericScheme.proposeCalls(contractsToCall, callsData, values, proposalDescriptionHash);
             emit ProposalCreated(address(genericScheme), proposalId);
             realitio.notifyOfArbitrationRequest(questionId, msg.sender, maxPrevious);

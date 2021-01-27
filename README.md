@@ -13,7 +13,7 @@ First clone the repository:
 git clone https://github.com/nicoelzer/omen-arbitrator.git
 ```
 
-Move into the dxswap-sdk working directory
+Move into the omen-arbitrator working directory
 
 ```sh
 cd omen-arbitrator/
