@@ -4,10 +4,9 @@ pragma solidity >=0.8.0;
 import './interfaces/IRealitio.sol';
 import './interfaces/IGenericSchemeMultiCall.sol';
 import './libraries/TransferHelper.sol';
-import './libraries/SafeMath.sol';
+import "./libraries/ReentrancyGuard.sol";
 
-contract DXdaoArbitrator {
-    using SafeMath for uint256;
+contract DXdaoArbitrator is ReentrancyGuard {
 
     IRealitio public realitio;
     IGenericSchemeMultiCall public genericScheme;
@@ -16,7 +15,12 @@ contract DXdaoArbitrator {
     address public owner;
     uint256 public disputeFee;
     uint256 public disputeCount;
+    
+    // Arbitator Metadata on realitio see:
+    // https://realitio.github.io/docs/html/arbitrators.html#getting-information-about-the-arbitrator
     string public metadata;
+
+    // Static ipfs hash of resulting Alchemy proposal
     string public proposalDescriptionHash;
 
     mapping(uint256 => bytes32) public disputeQuestionId;
@@ -35,8 +39,8 @@ contract DXdaoArbitrator {
     event SetDAOstackPlugin(address indexed plugin);
     event SetMetaData(string indexed metadata);
     event SetDisputeFee(uint256 indexed fee);
-    event SetOwner(address indexed owner);
     event SetFeeRecipient(address payable indexed recipient);
+    event ChangeOwner(address indexed owner);
     event SubmitAnswerByArbitrator(bytes32 indexed questionId, bytes32 answer, address answerer);
     event Withdraw(address payable indexed recipient, uint256 indexed amount);
 
@@ -79,11 +83,6 @@ contract DXdaoArbitrator {
         emit SetDAOstackPlugin(_address);
     }
 
-    function setOwner(address _owner) public onlyOwner() {
-        owner = _owner;
-        emit SetOwner(_owner);
-    }
-
     function setDAOstackProposalDescriptionHash(string memory _descriptionHash) public onlyOwner() {
         proposalDescriptionHash = _descriptionHash;
         emit SetDAOstackProposalDescriptionHash(_descriptionHash);
@@ -105,12 +104,25 @@ contract DXdaoArbitrator {
         emit SetFeeRecipient(_recipient);
     }
 
+    function changeOwner(address _owner) public onlyOwner() {
+        owner = _owner;
+        emit ChangeOwner(_owner);
+    }
+
     // The arbitrator submits the final answer that resolves the market
     function submitAnswerByArbitrator(
         bytes32 questionId,
         bytes32 answer,
         address answerer
     ) public onlyOwner() {
+        require(
+            realitio.getArbitrator(questionId) == address(this),
+            'DXdaoArbitrator: WRONG_ARBITRATOR'
+        );
+        require(
+            realitio.isPendingArbitration(questionId),
+            'DXdaoArbitrator: NOT_PENDING_ARBITRATION'
+        );
         delete arbitrationFees[questionId];
         realitio.submitAnswerByArbitrator(questionId, answer, answerer);
         emit SubmitAnswerByArbitrator(questionId, answer, answerer);
@@ -120,6 +132,7 @@ contract DXdaoArbitrator {
     function requestArbitration(bytes32 questionId, uint256 maxPrevious)
         external
         payable
+        nonReentrant()
         returns (bool)
     {
         require(
@@ -129,11 +142,11 @@ contract DXdaoArbitrator {
         require(!realitio.isFinalized(questionId), 'DXdaoArbitrator: FINALIZED_QUESTION');
         disputeQuestionId[disputeCount] = questionId;
         disputeCount++;
-        arbitrationFees[questionId] = arbitrationFees[questionId].add(msg.value);
+        arbitrationFees[questionId] = arbitrationFees[questionId] + msg.value;
         uint256 feePaid = arbitrationFees[questionId];
         if (feePaid >= disputeFee) {
             bytes memory encodedCall = abi.encodeWithSelector(
-                bytes4(keccak256('disputeResolutionNotification(bytes32)')),
+                this.disputeResolutionNotification.selector,
                 questionId
             );
 
@@ -152,12 +165,13 @@ contract DXdaoArbitrator {
             emit Withdraw(feeRecipient, feePaid);
             return true;
         } else {
-            emit RequestArbitration(questionId, msg.value, msg.sender, disputeFee.sub(feePaid));
+            emit RequestArbitration(questionId, msg.value, msg.sender, disputeFee - feePaid);
             return false;
         }
     }
     
-    // Function to be called from realitio to fetch dispute fee
+    // Expected function for realitio see:
+    // https://realitio.github.io/docs/html/arbitrators.html#creating-and-using-an-arbitration-contract
     function getDisputeFee(bytes32 questionId) external view returns (uint256) {
         return disputeFee;
     }

@@ -2,6 +2,8 @@
 /build
 /coverage
 /contracts/.flattened
+/artifacts
+/cache
 
 coverage.json
 yarn.lock
