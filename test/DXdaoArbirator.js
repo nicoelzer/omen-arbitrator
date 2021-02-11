@@ -89,7 +89,7 @@ contract('DXdaoArbitrator', () => {
       ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
 
       await expect(
-        dXdaoArbiratorInstance.connect(secondAddress).setOwner(ownerAddress.address)
+        dXdaoArbiratorInstance.connect(secondAddress).changeOwner(ownerAddress.address)
       ).to.be.revertedWith('DXdaoArbitrator: FORBIDDEN');
     });
 
@@ -128,8 +128,8 @@ contract('DXdaoArbitrator', () => {
         .to.emit(dXdaoArbiratorInstance, 'SetFeeRecipient')
         .withArgs(realitioInstance.address);
 
-      await expect(dXdaoArbiratorInstance.connect(ownerAddress).setOwner(realitioInstance.address))
-        .to.emit(dXdaoArbiratorInstance, 'SetOwner')
+      await expect(dXdaoArbiratorInstance.connect(ownerAddress).changeOwner(realitioInstance.address))
+        .to.emit(dXdaoArbiratorInstance, 'ChangeOwner')
         .withArgs(realitioInstance.address);
     });
 
