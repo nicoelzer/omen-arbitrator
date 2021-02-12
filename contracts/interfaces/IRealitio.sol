@@ -44,4 +44,6 @@ interface IRealitio {
     function resultFor(bytes32 question_id) external view returns (bytes32);
 
     function getArbitrator(bytes32 question_id) external view returns (address);
+
+    function isPendingArbitration(bytes32 question_id) external view returns (bool);
 }

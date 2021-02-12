@@ -35,7 +35,7 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor () {
+    constructor() {
         _status = _NOT_ENTERED;
     }
 
@@ -48,7 +48,7 @@ abstract contract ReentrancyGuard {
      */
     modifier nonReentrant() {
         // On the first call to nonReentrant, _notEntered will be true
-        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+        require(_status != _ENTERED, 'ReentrancyGuard: reentrant call');
 
         // Any calls to nonReentrant after this point will fail
         _status = _ENTERED;
